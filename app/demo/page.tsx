@@ -13,24 +13,20 @@ import abi from './contractJson/ConnerDao.json';
 import 'viem/window';
 
 export default function Home() {
+  const SEPOLIA_RPC_URL = process.env.NEXT_PUBLIC_SEPOLIA_RPC_URL;
+  const PRIVATE_KEY = process.env.NEXT_PUBLIC_PRIVATE_KEY;
   const address = '0xb07959116C226f4e5A089B9453Ac3370cD882b08';
   const contractABI = abi.abi;
   const publicClient = createPublicClient({
     chain: sepolia,
-    transport: http(
-      '	https://sepolia.infura.io/v3/2607cab9fd8d488998c50bb4f92b0ff8',
-    ),
+    transport: http(SEPOLIA_RPC_URL),
   });
   const client = createWalletClient({
     chain: sepolia,
-    transport: http(
-      '	https://sepolia.infura.io/v3/2607cab9fd8d488998c50bb4f92b0ff8',
-    ),
+    transport: http(SEPOLIA_RPC_URL),
   });
 
-  const account = privateKeyToAccount(
-    '0x02f21976b012907c0a2b9fad37b1340b1bcc97b074b7babb96986d36e23f040f',
-  );
+  const account = privateKeyToAccount(`0x${PRIVATE_KEY}`);
 
   const contract = getContract({
     address: address,
