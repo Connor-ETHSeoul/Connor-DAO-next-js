@@ -11,6 +11,7 @@ import {
   getContract,
   createPublicClient,
   LocalAccount,
+  encodeFunctionData,
 } from 'viem';
 import abi from '../contractJson/ConnerDao.json';
 import 'viem/window';
@@ -91,17 +92,25 @@ export default function PolicyPage() {
     }
 
     try {
-      const { request } = await publicClient(selectedChainId).simulateContract({
-        account: nearViemAccount,
-        address: voteContractAddressFrom(selectedChainId),
+      const data = encodeFunctionData({
         abi: contractABI,
         functionName: 'vote',
         args: [BigInt(policyId), BigInt(voteNumber)],
       });
 
-      const result =
-        await walletClientFrom(selectedChainId).writeContract(request);
-      console.log(result);
+      const request = await walletClientFrom(
+        selectedChainId,
+      ).prepareTransactionRequest({
+        to: voteContractAddressFrom(selectedChainId),
+        data,
+      });
+      const serializedTransaction =
+        await walletClientFrom(selectedChainId).signTransaction(request);
+      const hash = await walletClientFrom(selectedChainId).sendRawTransaction({
+        serializedTransaction,
+      });
+
+      console.log(hash);
       if (userVote == Vote.AGREE) {
         setVotingData((prev) => {
           return {
