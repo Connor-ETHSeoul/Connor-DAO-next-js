@@ -15,12 +15,59 @@ import stabbingButton from '@/public/btn_attack1.svg';
 import swingButton from '@/public/btn_attack2.svg';
 
 import Image from 'next/image';
-import { useEffect, useState } from 'react';
+import { useMemo, useState } from 'react';
 import HumanConditionalRender from './components/HumanConditionalRender';
 
+import {
+  createWalletClient,
+  http,
+  getContract,
+  createPublicClient,
+  LocalAccount,
+} from 'viem';
+import { MPC_CONTRACT, NearWallet } from '@/utils/near-wallet';
+import { useSnapshot } from 'valtio';
+import WalletStore from '@/store/walletStore';
+import abi from '../contractJson/Game.json';
+import 'viem/window';
+import { sepolia } from 'viem/chains';
+import { useIsMounted } from '@/hooks/useIsMounted';
+
 export default function GamePage() {
-  const [selectedEnemy, setSelectedEnemy] = useState('oldMan');
-  const [isMounted, setIsMounted] = useState(false);
+  const wallet = useMemo(
+    () => new NearWallet({ createAccessKeyFor: MPC_CONTRACT }),
+    [],
+  );
+  const { isSignedIn, accountId } = useSnapshot(WalletStore.state);
+
+  const SEPOLIA_RPC_URL =
+    'https://endpoints.omniatech.io/v1/eth/sepolia/public';
+  const gameAddress = '0x589685A025C0DE5f21904314d235ad093b3bFEc3';
+  const contractABI = abi.abi;
+
+  const publicClient = createPublicClient({
+    chain: sepolia,
+    transport: http(SEPOLIA_RPC_URL),
+  });
+  const client = createWalletClient({
+    chain: sepolia,
+    transport: http(SEPOLIA_RPC_URL),
+  });
+
+  const contract = getContract({
+    address: gameAddress,
+    abi: contractABI,
+    client: client,
+  });
+
+  enum Enemy {
+    OLDMAN,
+    DEVIL,
+    ZOMBIE,
+  }
+
+  const [selectedEnemy, setSelectedEnemy] = useState(Enemy.OLDMAN);
+
   // normal,swing,stab for attackType
   const [attackType, setAttackType] = useState('normal');
 
@@ -29,12 +76,97 @@ export default function GamePage() {
   const [zombieHP, setZombieHP] = useState(100);
   const [devilHP, setDevilHP] = useState(100);
 
-  useEffect(() => {
-    setIsMounted(true);
-  }, []);
+  const stab = async () => {
+    let enemy;
+    if (selectedEnemy == Enemy.OLDMAN) {
+      enemy = 1;
+    } else if (selectedEnemy == Enemy.DEVIL) {
+      enemy = 2;
+    } else {
+      enemy = 3;
+    }
+    if (!isSignedIn || accountId === undefined) {
+      throw new Error('Please sign in to stab');
+    }
+    const nearViemAccount = (await wallet.nearViemAccount(
+      accountId,
+    )) as LocalAccount;
+    const walletClient = createWalletClient({
+      account: nearViemAccount,
+      transport: http(),
+      chain: sepolia,
+    });
 
+    try {
+      const { request } = await publicClient.simulateContract({
+        account: nearViemAccount,
+        address: gameAddress,
+        abi: contractABI,
+        functionName: 'stab',
+        args: [BigInt(0), BigInt(enemy)],
+      });
+      if (selectedEnemy == Enemy.OLDMAN) {
+        setOldManHP((prev) => prev - 40);
+      } else if (selectedEnemy == Enemy.DEVIL) {
+        setDevilHP((prev) => prev - 40);
+      } else {
+        setZombieHP((prev) => prev - 40);
+      }
+      const result = await walletClient.writeContract(request);
+      console.log(result);
+    } catch (error: any) {
+      alert('Stab failed: ' + error.message);
+      console.error('Stab error:', error);
+    }
+  };
+
+  const swing = async () => {
+    let enemy;
+    if (selectedEnemy == Enemy.OLDMAN) {
+      enemy = 1;
+    } else if (selectedEnemy == Enemy.DEVIL) {
+      enemy = 2;
+    } else {
+      enemy = 3;
+    }
+    if (!isSignedIn || accountId === undefined) {
+      throw new Error('Please sign in to swing');
+    }
+    const nearViemAccount = (await wallet.nearViemAccount(
+      accountId,
+    )) as LocalAccount;
+    const walletClient = createWalletClient({
+      account: nearViemAccount,
+      transport: http(),
+      chain: sepolia,
+    });
+
+    try {
+      const { request } = await publicClient.simulateContract({
+        account: nearViemAccount,
+        address: gameAddress,
+        abi: contractABI,
+        functionName: 'swing',
+        args: [BigInt(0), BigInt(enemy)],
+      });
+      if (selectedEnemy == Enemy.OLDMAN) {
+        setOldManHP((prev) => prev - 40);
+      } else if (selectedEnemy == Enemy.DEVIL) {
+        setDevilHP((prev) => prev - 40);
+      } else {
+        setZombieHP((prev) => prev - 40);
+      }
+      const result = await walletClient.writeContract(request);
+      console.log(result);
+    } catch (error: any) {
+      alert('Swing failed: ' + error.message);
+      console.error('Swing error:', error);
+    }
+  };
+
+  const mounted = useIsMounted();
   return (
-    isMounted && (
+    mounted && (
       <>
         <div className="mx-[6%] mt-[3%] flex flex-col">
           <div className="flex justify-between">
@@ -61,13 +193,13 @@ export default function GamePage() {
           </div>
           <div className="characterContainer flex justify-between pt-[10%]">
             <HumanConditionalRender attackType={attackType} />
-            {selectedEnemy === 'oldMan' ? (
+            {selectedEnemy === Enemy.OLDMAN ? (
               <Image
                 className="border-[4px] border-black"
                 src={oldmanEnemy}
                 alt={''}
                 onClick={() => {
-                  setSelectedEnemy('oldMan');
+                  setSelectedEnemy(Enemy.OLDMAN);
                 }}
               ></Image>
             ) : (
@@ -75,18 +207,18 @@ export default function GamePage() {
                 src={oldmanEnemy}
                 alt={''}
                 onClick={() => {
-                  setSelectedEnemy('oldMan');
+                  setSelectedEnemy(Enemy.OLDMAN);
                 }}
               ></Image>
             )}
 
-            {selectedEnemy === 'devil' ? (
+            {selectedEnemy === Enemy.DEVIL ? (
               <Image
                 className="border-[4px] border-black"
                 src={devilEnemy}
                 alt={''}
                 onClick={() => {
-                  setSelectedEnemy('devil');
+                  setSelectedEnemy(Enemy.DEVIL);
                 }}
               ></Image>
             ) : (
@@ -94,17 +226,17 @@ export default function GamePage() {
                 src={devilEnemy}
                 alt={''}
                 onClick={() => {
-                  setSelectedEnemy('devil');
+                  setSelectedEnemy(Enemy.DEVIL);
                 }}
               ></Image>
             )}
-            {selectedEnemy === 'zombie' ? (
+            {selectedEnemy === Enemy.ZOMBIE ? (
               <Image
                 className="border-[4px] border-black"
                 src={zombieEnemy}
                 alt={''}
                 onClick={() => {
-                  setSelectedEnemy('zombie');
+                  setSelectedEnemy(Enemy.ZOMBIE);
                 }}
               ></Image>
             ) : (
@@ -112,7 +244,7 @@ export default function GamePage() {
                 src={zombieEnemy}
                 alt={''}
                 onClick={() => {
-                  setSelectedEnemy('zombie');
+                  setSelectedEnemy(Enemy.ZOMBIE);
                 }}
               ></Image>
             )}
@@ -127,6 +259,7 @@ export default function GamePage() {
                   setAttackType('normal');
                 }, 1000);
                 setAttackType('stab');
+                stab();
               }}
             ></Image>
             <Image
@@ -138,6 +271,7 @@ export default function GamePage() {
                   setAttackType('normal');
                 }, 1000);
                 setAttackType('swing');
+                swing();
               }}
             ></Image>
           </div>
