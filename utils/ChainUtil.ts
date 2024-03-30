@@ -47,7 +47,7 @@ export function chainFrom(chainId: number): Chain {
 export function voteContractAddressFrom(chainId: number): Address {
   switch (chainId) {
     case 11155111:
-      return '0xF21ac1285FD503420608aC147bB94c16433CBC32';
+      return '0xb4Bc4Cb38be3BFDf7e6B6EAF38dfe1dC4EFBD666';
     case 6038361:
       return '0x77ee0829f5a99853aefe092539C3e44DbdBf4A9B';
     case 1313161555:
