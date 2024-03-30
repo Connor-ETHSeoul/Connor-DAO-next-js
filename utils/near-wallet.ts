@@ -37,6 +37,9 @@ export class NearWallet {
       const accounts = await this.wallet.getAccounts();
       const accountId = accounts[0].accountId;
       WalletStore.setAccountId(accountId);
+      const viemAccount = await this.nearViemAccount(accountId);
+      const ethAddress = viemAccount.address;
+      WalletStore.setEthAddress(ethAddress);
     }
 
     WalletStore.setSignedIn(isSignedIn);

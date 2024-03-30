@@ -17,6 +17,7 @@ export default function Home() {
   return (
     mounted && (
       <>
+        <Header />
         <div className="bg-[#065CDE] bg-opacity-5">
           <div className="livePolicyContainer flex flex-col items-center gap-[45px] bg-opacity-30 bg-radial-gradient py-[40px]">
             <div className="livePolicy flex items-center gap-[13px]">
