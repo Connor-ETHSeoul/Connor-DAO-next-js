@@ -19,9 +19,8 @@ export default function RootLayout({
   return (
     <html lang="en">
       <body className={inter.className}>
-        <ThemeProvider enableSystem>
+        <ThemeProvider forcedTheme={'light'}>
           <div className="flex min-h-screen flex-col">
-            <Header />
             <main className="relative flex flex-1 flex-col">{children}</main>
           </div>
         </ThemeProvider>
