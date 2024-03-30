@@ -12,7 +12,6 @@ import {
   createPublicClient,
   LocalAccount,
 } from 'viem';
-import { sepolia } from 'viem/chains';
 import abi from '../contractJson/ConnerDao.json';
 import 'viem/window';
 import { useEffect, useMemo, useState } from 'react';
@@ -21,35 +20,34 @@ import WalletStore from '@/store/walletStore';
 import { NearWallet, MPC_CONTRACT } from '@/utils/near-wallet';
 import { useSnapshot } from 'valtio';
 import Header from '@/components/Header';
+import { chainFrom, voteContractAddressFrom } from '@/utils/ChainUtil';
 
 export default function PolicyPage() {
   const wallet = useMemo(
     () => new NearWallet({ createAccessKeyFor: MPC_CONTRACT }),
     [],
   );
-  const { isSignedIn, accountId } = useSnapshot(WalletStore.state);
+  const { isSignedIn, accountId, selectedChainId } = useSnapshot(
+    WalletStore.state,
+  );
+  const [userVote, setUserVote] = useState<Vote | undefined>(undefined);
 
   const policyId = 0;
-  const SEPOLIA_RPC_URL =
-    'https://endpoints.omniatech.io/v1/eth/sepolia/public';
-  const address = '0x0d16F1d334790466F5B5097b98105D3b769bD1f2';
   const contractABI = abi.abi;
-  const publicClient = createPublicClient({
-    chain: sepolia,
-    transport: http(SEPOLIA_RPC_URL),
-  });
-  const client = createWalletClient({
-    chain: sepolia,
-    transport: http(SEPOLIA_RPC_URL),
-  });
+  function publicClient(chainId: number) {
+    return createPublicClient({
+      chain: chainFrom(chainId),
+      transport: http(),
+    });
+  }
 
-  // const account = privateKeyToAccount(`0x${PRIVATE_KEY}`);
-
-  const contract = getContract({
-    address: address,
-    abi: contractABI,
-    client: client,
-  });
+  function voteContractFrom(chainId: number) {
+    return getContract({
+      address: voteContractAddressFrom(chainId),
+      abi: contractABI,
+      client: publicClient(chainId),
+    });
+  }
 
   const [policyData, setPolicyData] = useState({
     title: '',
@@ -69,8 +67,6 @@ export default function PolicyPage() {
     ABSTAIN,
   }
 
-  const [userVote, setUserVote] = useState<Vote | null>(null);
-
   const vote = async () => {
     let voteNumber;
     if (userVote == Vote.AGREE) {
@@ -86,22 +82,25 @@ export default function PolicyPage() {
     const nearViemAccount = (await wallet.nearViemAccount(
       accountId,
     )) as LocalAccount;
-    const walletClient = createWalletClient({
-      account: nearViemAccount,
-      transport: http(),
-      chain: sepolia,
-    });
+    function walletClientFrom(chainId: number) {
+      return createWalletClient({
+        account: nearViemAccount,
+        transport: http(),
+        chain: chainFrom(chainId),
+      });
+    }
 
     try {
-      const { request } = await publicClient.simulateContract({
+      const { request } = await publicClient(selectedChainId).simulateContract({
         account: nearViemAccount,
-        address: address,
+        address: voteContractAddressFrom(selectedChainId),
         abi: contractABI,
         functionName: 'vote',
         args: [BigInt(policyId), BigInt(voteNumber)],
       });
 
-      const result = await walletClient.writeContract(request);
+      const result =
+        await walletClientFrom(selectedChainId).writeContract(request);
       console.log(result);
       if (userVote == Vote.AGREE) {
         setVotingData((prev) => {
@@ -133,7 +132,9 @@ export default function PolicyPage() {
 
   useEffect(() => {
     const policyDetail = async () => {
-      const data = await contract.read.policyDetail([BigInt(policyId)]);
+      const data = await voteContractFrom(selectedChainId).read.policyDetail([
+        BigInt(policyId),
+      ]);
       const [id, title, description, policy] = data as [
         bigint,
         string,
@@ -144,7 +145,9 @@ export default function PolicyPage() {
       console.log(data);
     };
     const voteStatus = async () => {
-      const data = await contract.read.voteStatus([BigInt(policyId)]);
+      const data = await voteContractFrom(selectedChainId).read.voteStatus([
+        BigInt(policyId),
+      ]);
       const [agree, disagree, abstain] = data as [bigint, bigint, bigint];
       setVotingData({
         agree: Number(agree),
@@ -156,7 +159,7 @@ export default function PolicyPage() {
     policyDetail();
     voteStatus();
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
+  }, [selectedChainId]);
 
   const markdown = `# policy: ${policyData.policy} ${'\n'} # description: ${policyData.description}`;
   const mounted = useIsMounted();
@@ -204,13 +207,14 @@ export default function PolicyPage() {
                   </div>
                   <div className="flex items-center gap-[10px] px-[12px]">
                     <PollDateRangeLogo className="h-[16px] w-[16px]" />
-                    <div className="text-[16px] leading-[140%] text-gray-500">
-                      {}
-                    </div>
+                    <div className="text-[16px] leading-[140%] text-gray-500"></div>
                   </div>
                 </div>
                 <div className="votePercentage flex h-[80px] w-full items-start border border-gray-100">
-                  <div className="yesVote flex w-[70%] flex-col items-start justify-center bg-[#D9E7FD] p-[12px]">
+                  <div
+                    className="yesVote flex flex-col items-start justify-center bg-[#D9E7FD] p-[12px]"
+                    style={{ width: `${votingData.agree.toString()}%` }}
+                  >
                     <div className="text-[16px] leading-[140%] text-[#065CDE]">
                       Yes
                     </div>
@@ -218,20 +222,26 @@ export default function PolicyPage() {
                       {votingData.agree}
                     </div>
                   </div>
-                  <div className="noVote flex w-[20%] flex-col items-start justify-center bg-[#FEDFEA] p-[12px]">
+                  <div
+                    className="noVote flex flex-col items-start justify-center bg-[#FEDFEA] p-[12px]"
+                    style={{ width: `${votingData.disagree.toString()}%` }}
+                  >
                     <div className="text-[16px] leading-[140%] text-[#F56677]">
                       No
                     </div>
                     <div className="text-[24px] font-semibold leading-[140%] text-[#F56677]">
-                      {votingData.abstain}
+                      {votingData.disagree}
                     </div>
                   </div>
-                  <div className="abstainVote flex w-[10%] flex-col items-start justify-center bg-gray-200 p-[12px]">
+                  <div
+                    className="abstainVote flex flex-col items-start justify-center bg-gray-200 p-[12px]"
+                    style={{ width: `${votingData.abstain.toString()}%` }}
+                  >
                     <div className="text-[16px] leading-[140%] text-[#71797D]">
                       Abstain
                     </div>
                     <div className="text-[24px] font-semibold leading-[140%] text-[#71797D]">
-                      {votingData.disagree}
+                      {votingData.abstain}
                     </div>
                   </div>
                 </div>
@@ -250,51 +260,60 @@ export default function PolicyPage() {
               <div className="voteHeader text-[18px] font-semibold leading-[130%]">
                 Vote
               </div>
-              <div className="divider divider m-[0px] h-0" />
+              <div className="divider m-[0px] h-0" />
               <div className="voteSection flex flex-col gap-[12px]">
                 <div className="text-[16px] font-medium leading-[140%] text-gray-500">
                   ❶ Please select whether you agree or not.
                 </div>
                 <div className="voteRadioButton flex items-start">
-                  <button
-                    className="flex h-[68px] flex-col items-center justify-center rounded-l-[8px] border bg-[#F5F5F6] px-[36px] py-[39px]"
-                    onClick={() => setUserVote(Vote.AGREE)}
-                  >
-                    <div>Yes</div>
-                  </button>
-                  <button
-                    className="flex h-[68px] flex-col items-center justify-center border bg-[#F5F5F6] px-[36px] py-[39px]"
-                    onClick={() => setUserVote(Vote.DISAGREE)}
-                  >
-                    <div>No</div>
-                  </button>
-                  <button
-                    className="flex h-[68px] flex-col items-center justify-center border bg-[#F5F5F6] px-[36px] py-[39px]"
-                    onClick={() => setUserVote(Vote.ABSTAIN)}
-                  >
-                    <div>Abstain</div>
-                  </button>
-                </div>
-                <div className="checkFHESection flex flex-col gap-[12px]">
-                  <div className="text-[16px] font-medium leading-[140%] text-gray-500">
-                    ❶ Please select whether you agree or not.
-                  </div>
-                  <div className="checkFHERadioButtonGroup flex flex-col gap-[8px]">
-                    <button className="flex items-center justify-between rounded-[8px] border bg-[#F5F5F6] p-[12px] ">
-                      <div className="flex gap-[10px]">
-                        <PollAmountLogo className="h-[16px]"></PollAmountLogo>
-                        <div>Vote None Anonymously</div>
-                      </div>
-                      <div className="h-[16px] w-[16px] rounded-full border border-[#000]"></div>
+                  {userVote == Vote.AGREE && (
+                    <button
+                      className="flex h-[68px] w-[33%] flex-col items-center justify-center bg-blue-300 px-[36px] py-[39px]"
+                      onClick={() => setUserVote(Vote.AGREE)}
+                    >
+                      Yes
                     </button>
-                    <button className="flex items-center justify-between rounded-[8px] border bg-[#F5F5F6] p-[12px] ">
-                      <div className="flex gap-[10px]">
-                        <PollAmountLogo className="h-[16px]"></PollAmountLogo>
-                        <div>Vote Anonymously</div>
-                      </div>
-                      <div className="h-[16px] w-[16px] rounded-full border border-[#000]"></div>
+                  )}
+                  {userVote != Vote.AGREE && (
+                    <button
+                      className="flex h-[68px] w-[33%] flex-col items-center justify-center border bg-[#F5F5F6] px-[36px] py-[39px]"
+                      onClick={() => setUserVote(Vote.AGREE)}
+                    >
+                      <div>Yes</div>
                     </button>
-                  </div>
+                  )}
+                  {userVote == Vote.DISAGREE && (
+                    <button
+                      className="flex h-[68px] w-[33%] flex-col items-center justify-center border bg-red-300 px-[36px] py-[39px]"
+                      onClick={() => setUserVote(Vote.DISAGREE)}
+                    >
+                      <div>No</div>
+                    </button>
+                  )}
+                  {userVote != Vote.DISAGREE && (
+                    <button
+                      className="flex h-[68px] w-[33%] flex-col items-center justify-center border bg-[#F5F5F6] px-[36px] py-[39px]"
+                      onClick={() => setUserVote(Vote.DISAGREE)}
+                    >
+                      <div>No</div>
+                    </button>
+                  )}
+                  {userVote == Vote.ABSTAIN && (
+                    <button
+                      className="flex h-[68px] w-[33%] flex-col items-center justify-center border bg-green-300 px-[36px] py-[39px]"
+                      onClick={() => setUserVote(Vote.ABSTAIN)}
+                    >
+                      <div>Abstain</div>
+                    </button>
+                  )}
+                  {userVote != Vote.ABSTAIN && (
+                    <button
+                      className="flex h-[68px] w-[33%] flex-col items-center justify-center border bg-[#F5F5F6] px-[36px] py-[39px]"
+                      onClick={() => setUserVote(Vote.ABSTAIN)}
+                    >
+                      <div>Abstain</div>
+                    </button>
+                  )}
                 </div>
                 <div className="divider"></div>
                 <ConnorDAOButton
