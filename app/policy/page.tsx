@@ -160,8 +160,43 @@ export default function PolicyPage() {
     voteStatus();
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [selectedChainId]);
-
   const markdown = `# policy: ${policyData.policy} ${'\n'} # description: ${policyData.description}`;
+
+  const [policyGraphData, setPolicyGraphData] = useState<
+    {
+      policy: string;
+      blockNumber: string;
+      blockTimestamp: string;
+    }[]
+  >([]);
+
+  useEffect(() => {
+    const graph =
+      'https://api.studio.thegraph.com/query/69684/connor-dao/v0.0.1';
+    fetch(graph, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({
+        query: `
+        {
+          policyListeds(first: 2) {
+            id
+            policy
+            blockNumber
+            blockTimestamp
+          }
+        }
+        `,
+      }),
+    })
+      .then((res) => res.json())
+      .then((data) => {
+        setPolicyGraphData(data.data.policyListeds);
+      });
+  }, [votingData]);
+
   const mounted = useIsMounted();
 
   return (
@@ -246,7 +281,7 @@ export default function PolicyPage() {
                   </div>
                 </div>
               </div>
-              <div className="pollDescription flex min-h-[427px] w-[746px] flex-col gap-[18px] rounded-[20px] border-2 border-gray-200 p-[20px]">
+              <div className="pollDescription flex w-[746px] flex-col gap-[18px] rounded-[20px] border-2 border-gray-200 p-[20px]">
                 <div className="descriptionHeader text-[18px] font-semibold leading-[130%]">
                   Description
                 </div>
@@ -254,6 +289,25 @@ export default function PolicyPage() {
                 <div>
                   <Markdown>{markdown}</Markdown>
                 </div>
+              </div>
+              <div className="pollDescription flex w-[746px] flex-col gap-[18px] rounded-[20px] border-2 border-gray-200 p-[20px]">
+                <div className="descriptionHeader text-[18px] font-semibold leading-[130%]">
+                  PolicyListed
+                </div>
+                <div className="divider m-[0px] h-0"></div>
+                {policyGraphData.map((data, index) => (
+                  <div key={index} className="flex flex-col gap-[10px]">
+                    <div className="text-[16px] font-medium leading-[140%]">
+                      {data.policy}
+                    </div>
+                    <div className="text-[16px] font-medium leading-[140%]">
+                    blockNumber {data.blockNumber}
+                    </div>
+                    <div className="text-[16px] font-medium leading-[140%]">
+                    blockTimestamp {data.blockTimestamp}
+                    </div>
+                  </div>
+                ))}
               </div>
             </div>
             <div className="voteContainer flex max-h-[500px] w-[375px] flex-col gap-[20px] rounded-[20px] border border-gray-200 p-[20px]">
