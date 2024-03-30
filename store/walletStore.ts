@@ -6,6 +6,7 @@ import { proxyWithLocalStorage } from '@/utils/StoreUtil';
 export interface WalletState {
   isSignedIn: boolean;
   accountId?: string;
+  ethAddress?: string;
 }
 
 /**
@@ -26,9 +27,13 @@ const WalletStore = {
   setAccountId(accountId: string) {
     state.accountId = accountId;
   },
+  setEthAddress(ethAddress: string) {
+    state.ethAddress = ethAddress;
+  },
   reset() {
     state.isSignedIn = false;
     state.accountId = undefined;
+    state.ethAddress = undefined;
   },
 };
 
