@@ -88,6 +88,9 @@ const config: Config = {
           'radial-gradient(50% 50% at 50% 50%, rgba(0, 102, 255, 0.3) 0%, rgba(255, 255, 255, 0.00) 100%)',
       },
     },
+    fontFamily: {
+      DOSSaemmul: ['DOSSaemmul'],
+    },
   },
 };
 export default config;
