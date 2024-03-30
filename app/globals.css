@@ -25,3 +25,10 @@ p {
 .btn.btn-ghost {
   @apply shadow-none;
 }
+
+@font-face {
+  font-family: 'DOSSaemmul';
+  src: url('https://cdn.jsdelivr.net/gh/projectnoonnu/noonfonts_eight@1.0/DOSSaemmul.woff')
+    format('woff');
+  font-style: normal;
+}
