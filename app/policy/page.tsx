@@ -28,6 +28,7 @@ export default function PolicyPage() {
     [],
   );
   const { isSignedIn, accountId } = useSnapshot(WalletStore.state);
+  const [userVote, setUserVote] = useState<Vote | undefined>(undefined);
 
   const policyId = 0;
   const SEPOLIA_RPC_URL =
@@ -68,8 +69,6 @@ export default function PolicyPage() {
     DISAGREE,
     ABSTAIN,
   }
-
-  const [userVote, setUserVote] = useState<Vote | null>(null);
 
   const vote = async () => {
     let voteNumber;
@@ -151,7 +150,6 @@ export default function PolicyPage() {
         disagree: Number(disagree),
         abstain: Number(abstain),
       });
-      console.log(data);
     };
     policyDetail();
     voteStatus();
@@ -204,13 +202,14 @@ export default function PolicyPage() {
                   </div>
                   <div className="flex items-center gap-[10px] px-[12px]">
                     <PollDateRangeLogo className="h-[16px] w-[16px]" />
-                    <div className="text-[16px] leading-[140%] text-gray-500">
-                      {}
-                    </div>
+                    <div className="text-[16px] leading-[140%] text-gray-500"></div>
                   </div>
                 </div>
                 <div className="votePercentage flex h-[80px] w-full items-start border border-gray-100">
-                  <div className="yesVote flex w-[70%] flex-col items-start justify-center bg-[#D9E7FD] p-[12px]">
+                  <div
+                    className="yesVote flex flex-col items-start justify-center bg-[#D9E7FD] p-[12px]"
+                    style={{ width: `${votingData.agree.toString()}%` }}
+                  >
                     <div className="text-[16px] leading-[140%] text-[#065CDE]">
                       Yes
                     </div>
@@ -218,20 +217,26 @@ export default function PolicyPage() {
                       {votingData.agree}
                     </div>
                   </div>
-                  <div className="noVote flex w-[20%] flex-col items-start justify-center bg-[#FEDFEA] p-[12px]">
+                  <div
+                    className="noVote flex flex-col items-start justify-center bg-[#FEDFEA] p-[12px]"
+                    style={{ width: `${votingData.disagree.toString()}%` }}
+                  >
                     <div className="text-[16px] leading-[140%] text-[#F56677]">
                       No
                     </div>
                     <div className="text-[24px] font-semibold leading-[140%] text-[#F56677]">
-                      {votingData.abstain}
+                      {votingData.disagree}
                     </div>
                   </div>
-                  <div className="abstainVote flex w-[10%] flex-col items-start justify-center bg-gray-200 p-[12px]">
+                  <div
+                    className="abstainVote flex flex-col items-start justify-center bg-gray-200 p-[12px]"
+                    style={{ width: `${votingData.abstain.toString()}%` }}
+                  >
                     <div className="text-[16px] leading-[140%] text-[#71797D]">
                       Abstain
                     </div>
                     <div className="text-[24px] font-semibold leading-[140%] text-[#71797D]">
-                      {votingData.disagree}
+                      {votingData.abstain}
                     </div>
                   </div>
                 </div>
@@ -250,51 +255,60 @@ export default function PolicyPage() {
               <div className="voteHeader text-[18px] font-semibold leading-[130%]">
                 Vote
               </div>
-              <div className="divider divider m-[0px] h-0" />
+              <div className="divider m-[0px] h-0" />
               <div className="voteSection flex flex-col gap-[12px]">
                 <div className="text-[16px] font-medium leading-[140%] text-gray-500">
                   ❶ Please select whether you agree or not.
                 </div>
                 <div className="voteRadioButton flex items-start">
-                  <button
-                    className="flex h-[68px] flex-col items-center justify-center rounded-l-[8px] border bg-[#F5F5F6] px-[36px] py-[39px]"
-                    onClick={() => setUserVote(Vote.AGREE)}
-                  >
-                    <div>Yes</div>
-                  </button>
-                  <button
-                    className="flex h-[68px] flex-col items-center justify-center border bg-[#F5F5F6] px-[36px] py-[39px]"
-                    onClick={() => setUserVote(Vote.DISAGREE)}
-                  >
-                    <div>No</div>
-                  </button>
-                  <button
-                    className="flex h-[68px] flex-col items-center justify-center border bg-[#F5F5F6] px-[36px] py-[39px]"
-                    onClick={() => setUserVote(Vote.ABSTAIN)}
-                  >
-                    <div>Abstain</div>
-                  </button>
-                </div>
-                <div className="checkFHESection flex flex-col gap-[12px]">
-                  <div className="text-[16px] font-medium leading-[140%] text-gray-500">
-                    ❶ Please select whether you agree or not.
-                  </div>
-                  <div className="checkFHERadioButtonGroup flex flex-col gap-[8px]">
-                    <button className="flex items-center justify-between rounded-[8px] border bg-[#F5F5F6] p-[12px] ">
-                      <div className="flex gap-[10px]">
-                        <PollAmountLogo className="h-[16px]"></PollAmountLogo>
-                        <div>Vote None Anonymously</div>
-                      </div>
-                      <div className="h-[16px] w-[16px] rounded-full border border-[#000]"></div>
+                  {userVote == Vote.AGREE && (
+                    <button
+                      className="flex h-[68px] w-[33%] flex-col items-center justify-center bg-blue-300 px-[36px] py-[39px]"
+                      onClick={() => setUserVote(Vote.AGREE)}
+                    >
+                      Yes
                     </button>
-                    <button className="flex items-center justify-between rounded-[8px] border bg-[#F5F5F6] p-[12px] ">
-                      <div className="flex gap-[10px]">
-                        <PollAmountLogo className="h-[16px]"></PollAmountLogo>
-                        <div>Vote Anonymously</div>
-                      </div>
-                      <div className="h-[16px] w-[16px] rounded-full border border-[#000]"></div>
+                  )}
+                  {userVote != Vote.AGREE && (
+                    <button
+                      className="flex h-[68px] w-[33%] flex-col items-center justify-center border bg-[#F5F5F6] px-[36px] py-[39px]"
+                      onClick={() => setUserVote(Vote.AGREE)}
+                    >
+                      <div>Yes</div>
                     </button>
-                  </div>
+                  )}
+                  {userVote == Vote.DISAGREE && (
+                    <button
+                      className="flex h-[68px] w-[33%] flex-col items-center justify-center border bg-red-300 px-[36px] py-[39px]"
+                      onClick={() => setUserVote(Vote.DISAGREE)}
+                    >
+                      <div>No</div>
+                    </button>
+                  )}
+                  {userVote != Vote.DISAGREE && (
+                    <button
+                      className="flex h-[68px] w-[33%] flex-col items-center justify-center border bg-[#F5F5F6] px-[36px] py-[39px]"
+                      onClick={() => setUserVote(Vote.DISAGREE)}
+                    >
+                      <div>No</div>
+                    </button>
+                  )}
+                  {userVote == Vote.ABSTAIN && (
+                    <button
+                      className="flex h-[68px] w-[33%] flex-col items-center justify-center border bg-green-300 px-[36px] py-[39px]"
+                      onClick={() => setUserVote(Vote.ABSTAIN)}
+                    >
+                      <div>Abstain</div>
+                    </button>
+                  )}
+                  {userVote != Vote.ABSTAIN && (
+                    <button
+                      className="flex h-[68px] w-[33%] flex-col items-center justify-center border bg-[#F5F5F6] px-[36px] py-[39px]"
+                      onClick={() => setUserVote(Vote.ABSTAIN)}
+                    >
+                      <div>Abstain</div>
+                    </button>
+                  )}
                 </div>
                 <div className="divider"></div>
                 <ConnorDAOButton
