@@ -21,7 +21,7 @@ export default function PolicyPage() {
   const policyId = 0;
   const SEPOLIA_RPC_URL = process.env.NEXT_PUBLIC_SEPOLIA_RPC_URL;
   const PRIVATE_KEY = process.env.NEXT_PUBLIC_PRIVATE_KEY;
-  const address = '0xb07959116C226f4e5A089B9453Ac3370cD882b08';
+  const address = '0x0d16F1d334790466F5B5097b98105D3b769bD1f2';
   const contractABI = abi.abi;
   const publicClient = createPublicClient({
     chain: sepolia,
@@ -104,7 +104,6 @@ export default function PolicyPage() {
         });
       }
     } catch (error: any) {
-      // 여기서 사용자에게 알림을 보냅니다.
       alert('Voting failed: ' + error.message);
       console.error('Voting error:', error);
     }
