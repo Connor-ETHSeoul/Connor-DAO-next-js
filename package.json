@@ -9,13 +9,18 @@
     "lint": "next lint"
   },
   "dependencies": {
+    "@near-wallet-selector/core": "^8.9.5",
+    "@near-wallet-selector/modal-ui": "^8.9.5",
+    "@near-wallet-selector/my-near-wallet": "^8.9.5",
     "@uiw/react-md-editor": "v3.6.0",
+    "near-api-js": "^3.0.4",
+    "near-viem": "^0.0.1",
     "next": "14.1.4",
     "next-themes": "^0.3.0",
     "react": "^18",
     "react-dom": "^18",
-    "valtio": "^1.13.2",
-    "react-markdown": "^9.0.1"
+    "react-markdown": "^9.0.1",
+    "valtio": "^1.13.2"
   },
   "devDependencies": {
     "@types/node": "^20",
@@ -31,6 +36,6 @@
     "prettier-plugin-tailwindcss": "^0.5.13",
     "tailwindcss": "^3.3.0",
     "typescript": "^5",
-    "viem": "^2.9.5"
+    "viem": "2.9.4"
   }
 }
