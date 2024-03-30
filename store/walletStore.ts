@@ -7,6 +7,7 @@ export interface WalletState {
   isSignedIn: boolean;
   accountId?: string;
   ethAddress?: string;
+  selectedChainId: number;
 }
 
 /**
@@ -14,6 +15,7 @@ export interface WalletState {
  */
 const state = proxyWithLocalStorage<WalletState>('WalletState', {
   isSignedIn: false,
+  selectedChainId: 11155111,
 });
 
 /**
@@ -30,10 +32,14 @@ const WalletStore = {
   setEthAddress(ethAddress: string) {
     state.ethAddress = ethAddress;
   },
+  setSelectedChainId(selectedChainId: number) {
+    state.selectedChainId = selectedChainId;
+  },
   reset() {
     state.isSignedIn = false;
     state.accountId = undefined;
     state.ethAddress = undefined;
+    state.selectedChainId = 11155111;
   },
 };
 

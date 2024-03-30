@@ -1,7 +1,6 @@
 'use client';
 
 import Link from 'next/link';
-import { toast } from 'react-toastify';
 import { useRouter } from 'next/navigation';
 import { ConnorDAOButton } from './MainButton';
 import { ButtonType, ButtonSize } from '@/types/ButtonType';
@@ -10,10 +9,13 @@ import { useMemo, useEffect } from 'react';
 import { useSnapshot } from 'valtio';
 import WalletStore from '@/store/walletStore';
 import { CopyLogo } from './assets/CopyLogo';
+import { chainFrom, chainIds } from '@/utils/ChainUtil';
 
 export default function Header() {
   const router = useRouter();
-  const { isSignedIn, accountId, ethAddress } = useSnapshot(WalletStore.state);
+  const { isSignedIn, accountId, ethAddress, selectedChainId } = useSnapshot(
+    WalletStore.state,
+  );
   const wallet = useMemo(
     () => new NearWallet({ createAccessKeyFor: MPC_CONTRACT }),
     [],
@@ -25,6 +27,9 @@ export default function Header() {
     navigator.clipboard.writeText(ethAddress);
     window.alert('Copied to clipboard');
   };
+  function chainNameFrom(chainId: number): string {
+    return chainFrom(chainId).name;
+  }
 
   return (
     <div className="navbar border border-solid border-b-gray-200 px-[8%] py-[13px]">
@@ -85,6 +90,27 @@ export default function Header() {
             isDisabled={false}
           />
         )}
+        <div className="dropdown dropdown-end">
+          <div tabIndex={0} role="button" className="btn btn-ghost rounded-btn">
+            {chainNameFrom(selectedChainId)}
+          </div>
+          <ul
+            tabIndex={0}
+            className="menu dropdown-content bg-base-100 rounded-box z-[1] mt-4 w-52 p-2 shadow"
+          >
+            {chainIds.map((chainId) => (
+              <li key={chainId}>
+                <a
+                  onClick={() => {
+                    WalletStore.setSelectedChainId(chainId);
+                  }}
+                >
+                  {chainNameFrom(chainId)}
+                </a>
+              </li>
+            ))}
+          </ul>
+        </div>
       </div>
     </div>
   );

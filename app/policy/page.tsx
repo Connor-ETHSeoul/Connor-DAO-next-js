@@ -12,7 +12,6 @@ import {
   createPublicClient,
   LocalAccount,
 } from 'viem';
-import { sepolia } from 'viem/chains';
 import abi from '../contractJson/ConnerDao.json';
 import 'viem/window';
 import { useEffect, useMemo, useState } from 'react';
@@ -21,36 +20,34 @@ import WalletStore from '@/store/walletStore';
 import { NearWallet, MPC_CONTRACT } from '@/utils/near-wallet';
 import { useSnapshot } from 'valtio';
 import Header from '@/components/Header';
+import { chainFrom, voteContractAddressFrom } from '@/utils/ChainUtil';
 
 export default function PolicyPage() {
   const wallet = useMemo(
     () => new NearWallet({ createAccessKeyFor: MPC_CONTRACT }),
     [],
   );
-  const { isSignedIn, accountId } = useSnapshot(WalletStore.state);
+  const { isSignedIn, accountId, selectedChainId } = useSnapshot(
+    WalletStore.state,
+  );
   const [userVote, setUserVote] = useState<Vote | undefined>(undefined);
 
   const policyId = 0;
-  const SEPOLIA_RPC_URL =
-    'https://endpoints.omniatech.io/v1/eth/sepolia/public';
-  const address = '0x0d16F1d334790466F5B5097b98105D3b769bD1f2';
   const contractABI = abi.abi;
-  const publicClient = createPublicClient({
-    chain: sepolia,
-    transport: http(SEPOLIA_RPC_URL),
-  });
-  const client = createWalletClient({
-    chain: sepolia,
-    transport: http(SEPOLIA_RPC_URL),
-  });
+  function publicClient(chainId: number) {
+    return createPublicClient({
+      chain: chainFrom(chainId),
+      transport: http(),
+    });
+  }
 
-  // const account = privateKeyToAccount(`0x${PRIVATE_KEY}`);
-
-  const contract = getContract({
-    address: address,
-    abi: contractABI,
-    client: client,
-  });
+  function voteContractFrom(chainId: number) {
+    return getContract({
+      address: voteContractAddressFrom(chainId),
+      abi: contractABI,
+      client: publicClient(chainId),
+    });
+  }
 
   const [policyData, setPolicyData] = useState({
     title: '',
@@ -85,22 +82,25 @@ export default function PolicyPage() {
     const nearViemAccount = (await wallet.nearViemAccount(
       accountId,
     )) as LocalAccount;
-    const walletClient = createWalletClient({
-      account: nearViemAccount,
-      transport: http(),
-      chain: sepolia,
-    });
+    function walletClientFrom(chainId: number) {
+      return createWalletClient({
+        account: nearViemAccount,
+        transport: http(),
+        chain: chainFrom(chainId),
+      });
+    }
 
     try {
-      const { request } = await publicClient.simulateContract({
+      const { request } = await publicClient(selectedChainId).simulateContract({
         account: nearViemAccount,
-        address: address,
+        address: voteContractAddressFrom(selectedChainId),
         abi: contractABI,
         functionName: 'vote',
         args: [BigInt(policyId), BigInt(voteNumber)],
       });
 
-      const result = await walletClient.writeContract(request);
+      const result =
+        await walletClientFrom(selectedChainId).writeContract(request);
       console.log(result);
       if (userVote == Vote.AGREE) {
         setVotingData((prev) => {
@@ -132,7 +132,9 @@ export default function PolicyPage() {
 
   useEffect(() => {
     const policyDetail = async () => {
-      const data = await contract.read.policyDetail([BigInt(policyId)]);
+      const data = await voteContractFrom(selectedChainId).read.policyDetail([
+        BigInt(policyId),
+      ]);
       const [id, title, description, policy] = data as [
         bigint,
         string,
@@ -143,18 +145,21 @@ export default function PolicyPage() {
       console.log(data);
     };
     const voteStatus = async () => {
-      const data = await contract.read.voteStatus([BigInt(policyId)]);
+      const data = await voteContractFrom(selectedChainId).read.voteStatus([
+        BigInt(policyId),
+      ]);
       const [agree, disagree, abstain] = data as [bigint, bigint, bigint];
       setVotingData({
         agree: Number(agree),
         disagree: Number(disagree),
         abstain: Number(abstain),
       });
+      console.log(data);
     };
     policyDetail();
     voteStatus();
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
+  }, [selectedChainId]);
 
   const markdown = `# policy: ${policyData.policy} ${'\n'} # description: ${policyData.description}`;
   const mounted = useIsMounted();
