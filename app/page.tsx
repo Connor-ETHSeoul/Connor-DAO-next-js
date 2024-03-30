@@ -14,7 +14,7 @@ export default function Home() {
   return (
     <>
       <div className="bg-[#065CDE] bg-opacity-5">
-        <div className="livePolicyContainer bg-radial-gradient flex flex-col items-center gap-[45px] bg-opacity-30 py-[40px]">
+        <div className="livePolicyContainer flex flex-col items-center gap-[45px] bg-opacity-30 bg-radial-gradient py-[40px]">
           <div className="livePolicy flex items-center gap-[13px]">
             <LiveLogo className="h-[24px] w-[24px]"></LiveLogo>
             <div className="text-[40px] font-semibold leading-10">
@@ -27,7 +27,9 @@ export default function Home() {
                 <li key={idx} className="">
                   <Link
                     className="policyCard flex h-[383px] w-[339px] flex-col  items-start justify-between rounded-[20px] border-2 border-solid border-[#065CDE] bg-white p-[24px]"
-                    href={'/policy'}
+                    href={{
+                      pathname: '/policy',
+                    }}
                   >
                     <div className="policyTitle max-h-[156px] self-stretch text-[28px] font-semibold leading-[140%]">
                       {policy.title}
