@@ -11,7 +11,6 @@ import {
   getContract,
   createPublicClient,
   LocalAccount,
-  encodeFunctionData,
 } from 'viem';
 import abi from '../contractJson/ConnerDao.json';
 import 'viem/window';
@@ -33,7 +32,7 @@ export default function PolicyPage() {
   );
   const [userVote, setUserVote] = useState<Vote | undefined>(undefined);
 
-  const policyId = 0;
+  const policyId: bigint = 0n;
   const contractABI = abi.abi;
   function publicClient(chainId: number) {
     return createPublicClient({
@@ -69,13 +68,13 @@ export default function PolicyPage() {
   }
 
   const vote = async () => {
-    let voteNumber;
+    let voteNumber: bigint = 0n;
     if (userVote == Vote.AGREE) {
-      voteNumber = 0;
+      voteNumber = 0n;
     } else if (userVote == Vote.DISAGREE) {
-      voteNumber = 1;
+      voteNumber = 1n;
     } else {
-      voteNumber = 2;
+      voteNumber = 2n;
     }
     if (!isSignedIn || accountId === undefined) {
       throw new Error('Please sign in to vote');
@@ -92,25 +91,17 @@ export default function PolicyPage() {
     }
 
     try {
-      const data = encodeFunctionData({
+      const { request } = await publicClient(selectedChainId).simulateContract({
+        account: nearViemAccount,
+        address: voteContractAddressFrom(selectedChainId),
         abi: contractABI,
         functionName: 'vote',
-        args: [BigInt(policyId), BigInt(voteNumber)],
+        args: [policyId, voteNumber],
       });
 
-      const request = await walletClientFrom(
-        selectedChainId,
-      ).prepareTransactionRequest({
-        to: voteContractAddressFrom(selectedChainId),
-        data,
-      });
-      const serializedTransaction =
-        await walletClientFrom(selectedChainId).signTransaction(request);
-      const hash = await walletClientFrom(selectedChainId).sendRawTransaction({
-        serializedTransaction,
-      });
-
-      console.log(hash);
+      const result =
+        await walletClientFrom(selectedChainId).writeContract(request);
+      console.log(result);
       if (userVote == Vote.AGREE) {
         setVotingData((prev) => {
           return {
@@ -142,7 +133,7 @@ export default function PolicyPage() {
   useEffect(() => {
     const policyDetail = async () => {
       const data = await voteContractFrom(selectedChainId).read.policyDetail([
-        BigInt(policyId),
+        policyId,
       ]);
       const [id, title, description, policy] = data as [
         bigint,
@@ -155,7 +146,7 @@ export default function PolicyPage() {
     };
     const voteStatus = async () => {
       const data = await voteContractFrom(selectedChainId).read.voteStatus([
-        BigInt(policyId),
+        policyId,
       ]);
       const [agree, disagree, abstain] = data as [bigint, bigint, bigint];
       setVotingData({
