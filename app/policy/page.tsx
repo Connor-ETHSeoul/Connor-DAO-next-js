@@ -5,10 +5,147 @@ import { PollAmountLogo } from '@/components/assets/PollAmountLogo';
 import { PollDateRangeLogo } from '@/components/assets/PollDateRangeLogo';
 import { ConnorDAOButton } from '@/components/MainButton';
 import { ButtonSize, ButtonType } from '@/types/ButtonType';
+import {
+  createWalletClient,
+  http,
+  getContract,
+  createPublicClient,
+} from 'viem';
+import { privateKeyToAccount } from 'viem/accounts';
+import { sepolia } from 'viem/chains';
+import abi from '../contractJson/ConnerDao.json';
+import 'viem/window';
+import { useEffect, useState } from 'react';
 
 export default function PolicyPage() {
-  const markdown = '# Hi, *Pluto*!';
-  
+  const policyId = 0;
+  const SEPOLIA_RPC_URL = process.env.NEXT_PUBLIC_SEPOLIA_RPC_URL;
+  const PRIVATE_KEY = process.env.NEXT_PUBLIC_PRIVATE_KEY;
+  const address = '0x0d16F1d334790466F5B5097b98105D3b769bD1f2';
+  const contractABI = abi.abi;
+  const publicClient = createPublicClient({
+    chain: sepolia,
+    transport: http(SEPOLIA_RPC_URL),
+  });
+  const client = createWalletClient({
+    chain: sepolia,
+    transport: http(SEPOLIA_RPC_URL),
+  });
+
+  const account = privateKeyToAccount(`0x${PRIVATE_KEY}`);
+
+  const contract = getContract({
+    address: address,
+    abi: contractABI,
+    client: client,
+  });
+
+  const [policyData, setPolicyData] = useState({
+    title: '',
+    description: '',
+    policy: '',
+  });
+
+  const [votingData, setVotingData] = useState({
+    agree: 0,
+    disagree: 0,
+    abstain: 0,
+  });
+
+  enum Vote {
+    AGREE,
+    DISAGREE,
+    ABSTAIN,
+  }
+
+  const [userVote, setUserVote] = useState<Vote | null>(null);
+
+  const vote = async () => {
+    let voteNumber;
+    if (userVote == Vote.AGREE) {
+      voteNumber = 0;
+    } else if (userVote == Vote.DISAGREE) {
+      voteNumber = 1;
+    } else {
+      voteNumber = 2;
+    }
+
+    try {
+      const { request } = await publicClient.simulateContract({
+        account,
+        address: address,
+        abi: contractABI,
+        functionName: 'vote',
+        args: [BigInt(policyId), BigInt(voteNumber)],
+      });
+
+      const result = await client.writeContract(request);
+      console.log(result);
+      if (userVote == Vote.AGREE) {
+        setVotingData((prev) => {
+          return {
+            ...prev,
+            agree: prev.agree + 1,
+          };
+        });
+      } else if (userVote == Vote.DISAGREE) {
+        setVotingData((prev) => {
+          return {
+            ...prev,
+            agree: prev.disagree + 1,
+          };
+        });
+      } else {
+        setVotingData((prev) => {
+          return {
+            ...prev,
+            agree: prev.abstain + 1,
+          };
+        });
+      }
+    } catch (error: any) {
+      alert('Voting failed: ' + error.message);
+      console.error('Voting error:', error);
+    }
+  };
+
+  useEffect(() => {
+    let isMounted = true;
+    const policyDetail = async () => {
+      const data = await contract.read.policyDetail([BigInt(policyId)]);
+      const [id, title, description, policy] = data as [
+        bigint,
+        string,
+        string,
+        string,
+      ];
+      if (isMounted) {
+        setPolicyData({ title, description, policy });
+      }
+      console.log(data);
+    };
+    const voteStatus = async () => {
+      const data = await contract.read.voteStatus([BigInt(policyId)]);
+      const [agree, disagree, abstain] = data as [bigint, bigint, bigint];
+      if (isMounted) {
+        setVotingData({
+          agree: Number(agree),
+          disagree: Number(disagree),
+          abstain: Number(abstain),
+        });
+      }
+      console.log(data);
+    };
+    policyDetail();
+    voteStatus();
+
+    return () => {
+      isMounted = false;
+    };
+  }, []);
+
+  const markdown = `# policy: ${policyData.policy} ${'\n'} # description: ${policyData.description}`;
+
   return (
     <div className="policyContainer mx-[9%] mt-[40px] flex flex-col items-center justify-center gap-[30px]">
       <div className="policyTitle flex max-h-[156px] min-w-[1130px] flex-col gap-[6px]">
@@ -16,7 +153,7 @@ export default function PolicyPage() {
           Voting inprogress
         </div>
         <div className="text-[28px] font-semibold leading-[140%]">
-          {'Hello World'}
+          {policyData.title}
         </div>
       </div>
       <div className="policyBody flex gap-[25px]">
@@ -40,7 +177,7 @@ export default function PolicyPage() {
                     </div>
                   </div>
                   <div className="text-[18px] font-semibold leading-[140%] text-[#065CDE]">
-                    60%
+                    {votingData.agree}
                   </div>
                 </div>
                 <div className="pollBar flex h-[6px] items-center self-stretch bg-[#EEEFF0] pr-[145.5px]">
@@ -60,7 +197,7 @@ export default function PolicyPage() {
                   Yes
                 </div>
                 <div className="text-[24px] font-semibold leading-[140%] text-[#065CDE]">
-                  70%
+                  {votingData.agree}
                 </div>
               </div>
               <div className="noVote flex w-[20%] flex-col items-start justify-center bg-[#FEDFEA] p-[12px]">
@@ -68,7 +205,7 @@ export default function PolicyPage() {
                   No
                 </div>
                 <div className="text-[24px] font-semibold leading-[140%] text-[#F56677]">
-                  20%
+                  {votingData.abstain}
                 </div>
               </div>
               <div className="abstainVote flex w-[10%] flex-col items-start justify-center bg-gray-200 p-[12px]">
@@ -76,7 +213,7 @@ export default function PolicyPage() {
                   Abstain
                 </div>
                 <div className="text-[24px] font-semibold leading-[140%] text-[#71797D]">
-                  10%
+                  {votingData.disagree}
                 </div>
               </div>
             </div>
@@ -101,13 +238,22 @@ export default function PolicyPage() {
               ❶ Please select whether you agree or not.
             </div>
             <div className="voteRadioButton flex items-start">
-              <button className="flex h-[68px] flex-col items-center justify-center rounded-l-[8px] border bg-[#F5F5F6] px-[36px] py-[39px]">
+              <button
+                className="flex h-[68px] flex-col items-center justify-center rounded-l-[8px] border bg-[#F5F5F6] px-[36px] py-[39px]"
+                onClick={() => setUserVote(Vote.AGREE)}
+              >
                 <div>Yes</div>
               </button>
-              <button className="flex h-[68px] flex-col items-center justify-center border bg-[#F5F5F6] px-[36px] py-[39px]">
+              <button
+                className="flex h-[68px] flex-col items-center justify-center border bg-[#F5F5F6] px-[36px] py-[39px]"
+                onClick={() => setUserVote(Vote.DISAGREE)}
+              >
                 <div>No</div>
               </button>
-              <button className="flex h-[68px] flex-col items-center justify-center border bg-[#F5F5F6] px-[36px] py-[39px]">
+              <button
+                className="flex h-[68px] flex-col items-center justify-center border bg-[#F5F5F6] px-[36px] py-[39px]"
+                onClick={() => setUserVote(Vote.ABSTAIN)}
+              >
                 <div>Abstain</div>
               </button>
             </div>
@@ -135,9 +281,7 @@ export default function PolicyPage() {
             <div className="divider"></div>
             <ConnorDAOButton
               buttonText={'Vote'}
-              onClickEvent={function (): void {
-                console.log('Hello World');
-              }}
+              onClickEvent={() => vote()}
               buttonType={ButtonType.Secondary}
               buttonSize={ButtonSize.Large}
               isDisabled={false}

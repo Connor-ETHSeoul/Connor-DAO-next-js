@@ -1,28 +1,6 @@
 {
-    "abi": [
-        {
-            "inputs": [
-                {
-                    "internalType": "string",
-                    "name": "title",
-                    "type": "string"
-                },
-                {
-                    "internalType": "string",
-                    "name": "description",
-                    "type": "string"
-                },
-                {
-                    "internalType": "string",
-                    "name": "policy",
-                    "type": "string"
-                }
-            ],
-            "name": "makePolicy",
-            "outputs": [],
-            "stateMutability": "nonpayable",
-            "type": "function"
-        },
+    "abi":
+    [
         {
             "anonymous": false,
             "inputs": [
@@ -35,37 +13,6 @@
             ],
             "name": "PolicyListed",
             "type": "event"
-        },
-        {
-            "inputs": [
-                {
-                    "internalType": "uint256",
-                    "name": "policyId",
-                    "type": "uint256"
-                }
-            ],
-            "name": "restart",
-            "outputs": [],
-            "stateMutability": "nonpayable",
-            "type": "function"
-        },
-        {
-            "inputs": [
-                {
-                    "internalType": "uint256",
-                    "name": "policyId",
-                    "type": "uint256"
-                },
-                {
-                    "internalType": "enum ConnerDao.Vote",
-                    "name": "voting",
-                    "type": "uint8"
-                }
-            ],
-            "name": "vote",
-            "outputs": [],
-            "stateMutability": "nonpayable",
-            "type": "function"
         },
         {
             "inputs": [],
@@ -103,6 +50,34 @@
             "inputs": [
                 {
                     "internalType": "uint256",
+                    "name": "policyId",
+                    "type": "uint256"
+                },
+                {
+                    "internalType": "string",
+                    "name": "title",
+                    "type": "string"
+                },
+                {
+                    "internalType": "string",
+                    "name": "description",
+                    "type": "string"
+                },
+                {
+                    "internalType": "string",
+                    "name": "policy",
+                    "type": "string"
+                }
+            ],
+            "name": "makePolicy",
+            "outputs": [],
+            "stateMutability": "nonpayable",
+            "type": "function"
+        },
+        {
+            "inputs": [
+                {
+                    "internalType": "uint256",
                     "name": "",
                     "type": "uint256"
                 }
@@ -131,6 +106,37 @@
                 }
             ],
             "stateMutability": "view",
+            "type": "function"
+        },
+        {
+            "inputs": [
+                {
+                    "internalType": "uint256",
+                    "name": "policyId",
+                    "type": "uint256"
+                }
+            ],
+            "name": "restart",
+            "outputs": [],
+            "stateMutability": "nonpayable",
+            "type": "function"
+        },
+        {
+            "inputs": [
+                {
+                    "internalType": "uint256",
+                    "name": "policyId",
+                    "type": "uint256"
+                },
+                {
+                    "internalType": "enum ConnerDao.Vote",
+                    "name": "voting",
+                    "type": "uint8"
+                }
+            ],
+            "name": "vote",
+            "outputs": [],
+            "stateMutability": "nonpayable",
             "type": "function"
         },
         {

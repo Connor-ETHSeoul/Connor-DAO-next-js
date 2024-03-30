@@ -27,7 +27,9 @@ export default function Home() {
                 <li key={idx} className="">
                   <Link
                     className="policyCard flex h-[383px] w-[339px] flex-col  items-start justify-between rounded-[20px] border-2 border-solid border-[#065CDE] bg-white p-[24px]"
-                    href={{ pathname: '/policy', query: 'Hello World' }}
+                    href={{
+                      pathname: '/policy',
+                    }}
                   >
                     <div className="policyTitle max-h-[156px] self-stretch text-[28px] font-semibold leading-[140%]">
                       {policy.title}
