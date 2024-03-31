@@ -75,7 +75,7 @@ export default function CodeComparePage() {
 
   useEffect(() => {
     scrollToBottom();
-  }, [value.current]);
+  }, []);
 
   return (
     <div className="mx-[10%] flex flex-col gap-[20px]">
