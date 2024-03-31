@@ -1,7 +1,6 @@
 'use client';
 
 import ReactDiffViewer from 'react-diff-viewer-continued';
-import { StreamingTextResponse } from 'ai';
 
 import { ContractAddressSVG } from './components/ContractAddressSVG';
 import { useEffect, useRef, useState } from 'react';
@@ -67,6 +66,7 @@ export default function CodeComparePage() {
   }, [smartContractList]);
 
   const scrollToBottom = () => {
+    // @ts-ignore
     messagesEndRef.current?.scrollIntoView({
       behavior: 'smooth',
       block: 'end',
