@@ -56,7 +56,7 @@ export default function CodeComparePage() {
   );
 
   useEffect(() => {
-    if (smartContractList.length !== 0) {
+    if (smartContractList.length >= 2) {
       setContractVersion(
         smartContractList[smartContractList.length - 1].version,
       );
