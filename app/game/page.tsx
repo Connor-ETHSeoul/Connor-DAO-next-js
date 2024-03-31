@@ -42,7 +42,7 @@ export default function GamePage() {
 
   const SEPOLIA_RPC_URL =
     'https://endpoints.omniatech.io/v1/eth/sepolia/public';
-  const gameAddress = '0xdeab7578a7943230eb85206F80f01f4637FAf322';
+  const gameAddress = '0x22FCc39D253e5e8889985BFE142f37eFfe7E6aC7';
   const contractABI = abi.abi;
 
   const publicClient = createPublicClient({
