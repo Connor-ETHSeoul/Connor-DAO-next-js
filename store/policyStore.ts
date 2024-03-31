@@ -19,7 +19,7 @@ const state = proxy<PolicyListState>({
   policyList: [
     {
       policyId: 0,
-      title: 'Title Name 1',
+      title: 'Attacks on elderly',
       description: '## Hello World. This is Policy 1',
       policy: 'Do not Attack Human',
       yesVoteAmount: 60,

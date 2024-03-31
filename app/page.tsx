@@ -81,7 +81,7 @@ export default function Home() {
                   router.push('/code-compare');
                 }}
               >
-                Compare Smart Contract Code
+                Connor AI
               </button>
             </div>
           </div>
