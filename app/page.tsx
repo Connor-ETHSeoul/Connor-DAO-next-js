@@ -9,10 +9,13 @@ import { PollDateRangeLogo } from '@/components/assets/PollDateRangeLogo';
 import { useIsMounted } from '@/hooks/useIsMounted';
 import PolicyStore from '@/store/policyStore';
 import Link from 'next/link';
+import { useRouter } from 'next/navigation';
 import { useSnapshot } from 'valtio';
 
 export default function Home() {
   const { policyList } = useSnapshot(PolicyStore.state);
+  const router = useRouter();
+
   const mounted = useIsMounted();
   return (
     mounted && (
@@ -72,27 +75,14 @@ export default function Home() {
               </ul>
             </div>
             <div className="policyPagination flex items-start gap-[16px]">
-              <div className="flex h-[32px] w-[32px] flex-col items-center justify-center gap-[10px] p-[10px]">
-                <PaginationLeft className="h-[22px] w-[22px] shrink-0" />
-              </div>
-              <div className="paginationNumber flex items-start">
-                <div className="flex h-[32px] w-[32px] flex-col items-center justify-center gap-[10px] rounded-[10px] bg-black p-[10px] text-[16px] font-medium leading-[140%] text-white">
-                  1
-                </div>
-              </div>
-              <div className="paginationNumber flex items-start">
-                <div className="flex h-[32px] w-[32px] flex-col items-center justify-center gap-[10px] rounded-[10px] p-[10px] text-[16px] font-medium leading-[140%] text-gray-600">
-                  2
-                </div>
-              </div>
-              <div className="paginationNumber flex items-start">
-                <div className="flex h-[32px] w-[32px] flex-col items-center justify-center gap-[10px] rounded-[10px] p-[10px] text-[16px] font-medium leading-[140%] text-gray-600">
-                  3
-                </div>
-              </div>
-              <div className="flex h-[32px] w-[32px] flex-col items-center justify-center gap-[10px] p-[10px]">
-                <PaginationRight className="h-[22px] w-[22px] shrink-0" />
-              </div>
+              <button
+                className="btn"
+                onClick={() => {
+                  router.push('/code-compare');
+                }}
+              >
+                Compare Smart Contract Code
+              </button>
             </div>
           </div>
         </div>
@@ -150,29 +140,7 @@ export default function Home() {
             </div>
           </div>
           <div className="flex justify-around">
-            <div className="policyPagination flex items-center gap-[16px]">
-              <div className="flex h-[32px] w-[32px] flex-col items-center justify-center gap-[10px] p-[10px]">
-                <PaginationLeft className="h-[22px] w-[22px] shrink-0" />
-              </div>
-              <div className="paginationNumber flex items-start">
-                <div className="flex h-[32px] w-[32px] flex-col items-center justify-center gap-[10px] rounded-[10px] bg-black p-[10px] text-[16px] font-medium leading-[140%] text-white">
-                  1
-                </div>
-              </div>
-              <div className="paginationNumber flex items-start">
-                <div className="flex h-[32px] w-[32px] flex-col items-center justify-center gap-[10px] rounded-[10px] p-[10px] text-[16px] font-medium leading-[140%] text-gray-600">
-                  2
-                </div>
-              </div>
-              <div className="paginationNumber flex items-start">
-                <div className="flex h-[32px] w-[32px] flex-col items-center justify-center gap-[10px] rounded-[10px] p-[10px] text-[16px] font-medium leading-[140%] text-gray-600">
-                  3
-                </div>
-              </div>
-              <div className="flex h-[32px] w-[32px] flex-col items-center justify-center gap-[10px] p-[10px]">
-                <PaginationRight className="h-[22px] w-[22px] shrink-0" />
-              </div>
-            </div>
+            <div className="policyPagination flex items-center gap-[16px]"></div>
           </div>
         </div>
       </>

@@ -58,7 +58,7 @@ export default function Header() {
       </div>
       <div className="navbar-end flex gap-[16px]">
         <ConnorDAOButton
-          buttonText={'+ New Policy'}
+          buttonText={'+ New'}
           onClickEvent={function (): void {
             router.push('/newPolicy');
           }}
