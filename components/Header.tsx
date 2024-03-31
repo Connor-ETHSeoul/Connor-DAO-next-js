@@ -35,7 +35,7 @@ export default function Header() {
     <div className="navbar border border-solid border-b-gray-200 px-[8%] py-[13px]">
       <div className="navbar-start">
         <Link href="/" passHref className="">
-          <div className="flex text-[24px] font-bold leading-[140%] text-[#000]">
+          <div className="flex text-[36px] font-bold leading-[140%] text-[#000]">
             CONNOR DAO
           </div>
         </Link>
