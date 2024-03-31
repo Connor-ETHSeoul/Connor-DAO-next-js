@@ -24,13 +24,13 @@ export default function CodeComparePage() {
   const [outPutList, setOutputList] = useState<IAgentOutput[]>([]);
 
   const fetchAgentOutput = async () => {
-    const res = await fetch('http://localhost:3000/api/agent-output');
+    const res = await fetch('https://connor-dao-next-js.vercel.app//api/smart-contract');
     const data = await res.json();
     return data;
   };
 
   const fetchSmartContract = async () => {
-    const res = await fetch('http://localhost:3000/api/smart-contract');
+    const res = await fetch(`https://connor-dao-next-js.vercel.app//api/smart-contract`);
     const data = await res.json();
     return data;
   };
