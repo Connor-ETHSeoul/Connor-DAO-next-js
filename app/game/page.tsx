@@ -30,8 +30,8 @@ import { useSnapshot } from 'valtio';
 import WalletStore from '@/store/walletStore';
 import abi from '../contractJson/Game.json';
 import 'viem/window';
-import { sepolia } from 'viem/chains';
 import { useIsMounted } from '@/hooks/useIsMounted';
+import { chainFrom } from '@/utils/ChainUtil';
 
 export default function GamePage() {
   const wallet = useMemo(
@@ -40,18 +40,16 @@ export default function GamePage() {
   );
   const { isSignedIn, accountId } = useSnapshot(WalletStore.state);
 
-  const SEPOLIA_RPC_URL =
-    'https://endpoints.omniatech.io/v1/eth/sepolia/public';
-  const gameAddress = '0x22FCc39D253e5e8889985BFE142f37eFfe7E6aC7';
+  const gameAddress = '0x6f7CA11cf517bcebF14021EA4Ae60917F99488d3';
   const contractABI = abi.abi;
 
   const publicClient = createPublicClient({
-    chain: sepolia,
-    transport: http(SEPOLIA_RPC_URL),
+    chain: chainFrom(11155111),
+    transport: http(),
   });
   const client = createWalletClient({
-    chain: sepolia,
-    transport: http(SEPOLIA_RPC_URL),
+    chain: chainFrom(11155111),
+    transport: http(),
   });
 
   const contract = getContract({
@@ -94,7 +92,7 @@ export default function GamePage() {
     const walletClient = createWalletClient({
       account: nearViemAccount,
       transport: http(),
-      chain: sepolia,
+      chain: chainFrom(11155111),
     });
 
     try {
@@ -143,7 +141,7 @@ export default function GamePage() {
     const walletClient = createWalletClient({
       account: nearViemAccount,
       transport: http(),
-      chain: sepolia,
+      chain: chainFrom(11155111),
     });
 
     try {
