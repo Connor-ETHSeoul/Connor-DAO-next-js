@@ -42,7 +42,7 @@ export default function GamePage() {
 
   const SEPOLIA_RPC_URL =
     'https://endpoints.omniatech.io/v1/eth/sepolia/public';
-  const gameAddress = '0x589685A025C0DE5f21904314d235ad093b3bFEc3';
+  const gameAddress = '0xdeab7578a7943230eb85206F80f01f4637FAf322';
   const contractABI = abi.abi;
 
   const publicClient = createPublicClient({
@@ -79,11 +79,11 @@ export default function GamePage() {
   const stab = async () => {
     let enemy;
     if (selectedEnemy == Enemy.OLDMAN) {
-      enemy = 1;
-    } else if (selectedEnemy == Enemy.DEVIL) {
-      enemy = 2;
-    } else {
       enemy = 3;
+    } else if (selectedEnemy == Enemy.DEVIL) {
+      enemy = 1;
+    } else {
+      enemy = 2;
     }
     if (!isSignedIn || accountId === undefined) {
       throw new Error('Please sign in to stab');
@@ -105,6 +105,11 @@ export default function GamePage() {
         functionName: 'stab',
         args: [BigInt(0), BigInt(enemy)],
       });
+      const result = await walletClient.writeContract(request);
+      setTimeout(() => {
+        setAttackType('normal');
+      }, 1000);
+      setAttackType('stab');
       if (selectedEnemy == Enemy.OLDMAN) {
         setOldManHP((prev) => prev - 40);
       } else if (selectedEnemy == Enemy.DEVIL) {
@@ -112,7 +117,7 @@ export default function GamePage() {
       } else {
         setZombieHP((prev) => prev - 40);
       }
-      const result = await walletClient.writeContract(request);
+
       console.log(result);
     } catch (error: any) {
       alert('Stab failed: ' + error.message);
@@ -123,11 +128,11 @@ export default function GamePage() {
   const swing = async () => {
     let enemy;
     if (selectedEnemy == Enemy.OLDMAN) {
-      enemy = 1;
-    } else if (selectedEnemy == Enemy.DEVIL) {
-      enemy = 2;
-    } else {
       enemy = 3;
+    } else if (selectedEnemy == Enemy.DEVIL) {
+      enemy = 1;
+    } else {
+      enemy = 2;
     }
     if (!isSignedIn || accountId === undefined) {
       throw new Error('Please sign in to swing');
@@ -149,6 +154,8 @@ export default function GamePage() {
         functionName: 'swing',
         args: [BigInt(0), BigInt(enemy)],
       });
+      const result = await walletClient.writeContract(request);
+      console.log(result);
       if (selectedEnemy == Enemy.OLDMAN) {
         setOldManHP((prev) => prev - 40);
       } else if (selectedEnemy == Enemy.DEVIL) {
@@ -156,8 +163,10 @@ export default function GamePage() {
       } else {
         setZombieHP((prev) => prev - 40);
       }
-      const result = await walletClient.writeContract(request);
-      console.log(result);
+      setTimeout(() => {
+        setAttackType('normal');
+      }, 1000);
+      setAttackType('swing');
     } catch (error: any) {
       alert('Swing failed: ' + error.message);
       console.error('Swing error:', error);
@@ -182,12 +191,12 @@ export default function GamePage() {
             ></Profiile>
             <Profiile
               svgImage={devilFace}
-              hpStatus={zombieHP}
+              hpStatus={devilHP}
               name="Devil"
             ></Profiile>
             <Profiile
               svgImage={zombieFace}
-              hpStatus={devilHP}
+              hpStatus={zombieHP}
               name="Zombie"
             ></Profiile>
           </div>
@@ -255,10 +264,6 @@ export default function GamePage() {
               src={stabbingButton}
               alt={''}
               onClick={() => {
-                setTimeout(() => {
-                  setAttackType('normal');
-                }, 1000);
-                setAttackType('stab');
                 stab();
               }}
             ></Image>
@@ -267,10 +272,6 @@ export default function GamePage() {
               src={swingButton}
               alt={''}
               onClick={() => {
-                setTimeout(() => {
-                  setAttackType('normal');
-                }, 1000);
-                setAttackType('swing');
                 swing();
               }}
             ></Image>
